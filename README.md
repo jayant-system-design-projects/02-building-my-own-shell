@@ -1,111 +1,121 @@
 # Building My Own Shell 🐚
 
-This README is written by AI, but the code is mine. And yes, I am still building this shell one command at a time. 😄
+A small Python shell that I am building while working through the [Build Your Own Shell](https://codecrafters.io) challenge from CodeCrafters.
 
-This project is based on the [Build Your Own Shell](https://codecrafters.io) challenge from CodeCrafters, but I am following the structure and logic from my own code as I keep building it.
+The goal is to understand how a shell reads input, separates commands from arguments, handles built-ins, and runs external commands from the system `PATH`.
 
-The goal is simple: make a shell that can take input, split it, decide what command it is, and run it properly.
+Small note before the shell starts talking: AI helped me polish this README, but the parser, command handling, built-ins, and execution logic are mine. AI handled some typing cardio; I handled the shell workout. Fair deal.
 
-This is still a small shell, but it is a real one in progress. Shell we go? 🐚
+## What It Does
 
-## How I built it
+Right now, this shell can:
 
-### 1. Prompt loop
+- show a terminal-style `$` prompt
+- keep reading commands until `exit`
+- run built-in commands like `echo`, `pwd`, `cd`, `type`, and `exit`
+- find and run external commands available in `PATH`
+- parse normal arguments, single quotes, double quotes, escaped characters, and mixed quoted/unquoted values
 
-First I made the loop in `app/main.py`.
+It is still a learning project, but the core flow is real: read input, parse it, decide what command it is, and execute it.
 
-I wanted the shell to behave like a terminal, so it had to:
-
-- show a prompt
-- read input
-- run the command
-- keep looping
-- stop when the user types `exit`
-
-That was the first real shell feeling.
-
-### 2. Split command and arguments
-
-Then I worked on parsing in `app/utils/command_utils.py`.
-
-I needed to take something like:
+## Quick Demo
 
 ```bash
-echo hello world
+$ echo hello
+hello
+
+$ echo "hello world"
+hello world
+
+$ echo hello\ world
+hello world
+
+$ pwd
+/current/directory
+
+$ type pwd
+pwd is a shell builtin
 ```
 
-and turn it into:
+## How It Works
 
-- command = `echo`
-- arguments = `["hello", "world"]`
+### 1. Prompt Loop
 
-This was important because raw shell input is just text. Before anything can run, it must be separated properly.
+The shell starts in `app/main.py`.
 
-I also handled single quotes, because this matters in real shells:
+It prints the `$` prompt, reads user input, sends the input for execution, prints the result, and keeps looping until the user runs `exit`.
+
+### 2. Command Parsing
+
+Parsing lives in `app/utils/command_utils.py`.
+
+This part takes raw text like:
 
 ```bash
 echo 'hello world'
 ```
 
-should stay as one argument, not two.
+and turns it into:
 
-### 3. Command dispatch
+- command: `echo`
+- arguments: `["hello world"]`
 
-After that, I built the command routing in `app/handlers/command_handler.py`.
+The parser also handles double quotes, backslash escapes, and joined quoted/unquoted values. This was the part where I learned that splitting shell input looks simple only until quotes enter the chat.
 
-This file decides what to do with the command after parsing. If the command is `echo`, `pwd`, `cd`, or `type`, it runs the appropriate logic. Otherwise, it tries to run it as an external command.
+### 3. Command Dispatch
 
-This is where the shell starts acting like a shell and not just a script.
+Command routing is handled in `app/handlers/command_handler.py`.
 
-### 4. Built-ins
+After parsing, the handler decides whether the command is a shell built-in or an external command. Built-ins are handled inside the project, while external commands are passed to the system.
 
-I implemented built-ins in `app/services/command_service.py`.
+### 4. Built-ins and External Commands
 
-- `echo` prints the arguments back
-- `pwd` shows the current directory
-- `cd` changes the working directory
-- `type` checks whether the command is built-in or in `PATH`
-- `exit` ends the shell
+The command logic lives in `app/services/command_service.py`.
 
-This part taught me that shell commands are not all the same. Some are handled by the shell itself, and some are delegated to the system.
+- `echo` prints arguments back
+- `pwd` prints the current working directory
+- `cd` changes the current directory
+- `type` checks whether a command is built-in or available in `PATH`
+- `exit` stops the shell loop
+- external commands are found with `shutil.which()` and executed with `subprocess.run()`
 
-### 5. External command execution
+## Project Structure
 
-The next step was running real commands from the machine.
+```text
+app/
+  main.py                       # Prompt loop
+  handlers/
+    command_handler.py          # Command dispatch
+  services/
+    command_service.py          # Built-ins and external command execution
+  utils/
+    command_utils.py            # Parsing and PATH lookup helpers
+    enums.py                    # Built-in command names
+pyproject.toml                  # Project metadata
+```
 
-I used `shutil.which()` and `subprocess.run()` so commands like `ls` or `git` can be found and executed if they exist in `PATH`.
+## Run Locally
 
-That was the moment the shell started becoming useful.
-
-## Current status ✅
-
-Right now it supports:
-
-- `echo`
-- `pwd`
-- `cd`
-- `type`
-- `exit`
-- external commands from `PATH`
-- basic single-quote parsing
-
-## Run it 🚀
+This project uses Python 3.14+ and has no external package dependencies right now.
 
 ```bash
 python -m app.main
 ```
 
-Example commands:
+Example commands to try:
 
 ```bash
 echo hello
+echo "hello world"
+echo hello\ world
 pwd
 cd ..
 type pwd
-ls
+type python
 ```
 
-This project is still growing, and every new command teaches me something new. I am keeping it simple, step by step, and making sure the shell logic actually makes sense before adding more.
+## What I Learned
 
-That is the goal, and honestly, it is pretty shell-mazing. 🐚✨
+This project helped me understand that a shell is not only about running commands. Even a small shell needs a clean flow for reading input, parsing arguments, routing built-ins, checking `PATH`, changing directories, and returning output.
 
+It is a small project, but it made shell behavior feel much less mysterious. Shell we say, progress? 🐚
