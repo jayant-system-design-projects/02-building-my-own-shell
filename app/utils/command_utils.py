@@ -1,5 +1,6 @@
 from typing import Tuple
 import shutil
+from pathlib import Path
 
 
 def __normalize_arguments(arguments: str) -> list[str]:
@@ -195,9 +196,6 @@ def __split_command_and_args(shell_input: str) -> Tuple[str, str | None]:
     arguments: str
         This are the normalized arguments passed with command.
     """
-    # Remove empty space before command
-    shell_input = shell_input.strip()
-
     # Split command for core command and arguments
     split_commands = shell_input.split()
 
@@ -242,3 +240,82 @@ def __find_executable_command(command: str) -> str | None:
     if executable_path:
         return executable_path
     return None
+
+
+def __find_shell_redirect(shell_input: str) -> Tuple[str, Path | str, str, bool]:
+    """
+    This will find a command has redirect
+    1. > or 1> where we extract output and write in redirect file while we show error on console.
+    2. 2> we write error in redirect file and show output if present on console else direct next line $.
+    3. >> or 1>> rather than overwriting this concat or add thing in existing folder same as > or 1> except concat.
+
+    Parameters
+    ----------
+    shell_input:
+        The full shell input with core_command,arguments and redirect file name with flag to store error or only output.
+
+    Returns
+    -------
+    file_to_redirect: str
+        The path or file where we need to write the things or empty if no redirect present.
+    folder_or_file: Path | str
+        This path object on which we can write content or str if no file redirect.
+    redirect_removed_shell_input:
+        The shell input with removed redirect from shell input for further processing.
+    to_write_error: bool
+        This will tell are writing error or the output and what to show.
+    """
+
+    redirect_symbol = ">"
+    file_to_redirect = ""
+
+    # All this flags and vars are used to process redirect
+    redirect_removed_shell_input = shell_input
+    to_write_error = False
+    folder_or_file = ""
+    to_concat = False
+
+    # Based on redirect change and process flags and this maintained hierarchy so in statement works.
+    if "1>>" in shell_input:
+        redirect_symbol = "1>>"
+        to_concat = True
+    elif "2>>" in shell_input:
+        redirect_symbol = "2>>"
+        to_write_error = True
+        to_concat = True
+    elif ">>" in shell_input:
+        redirect_symbol = ">>"
+        to_concat = True
+    elif "1>" in shell_input:
+        redirect_symbol = "1>"
+    elif "2>" in shell_input:
+        redirect_symbol = "2>"
+        to_write_error = True
+    elif ">" in shell_input:
+        redirect_symbol = ">"
+    # In case of no redirect
+    else:
+        return (
+            file_to_redirect,
+            folder_or_file,
+            redirect_removed_shell_input,
+            to_write_error,
+            to_concat,
+        )
+
+    # Parse redirect and separate it from actual core command and arguments
+    split_by_redirect = shell_input.split(redirect_symbol)
+    file_to_redirect = split_by_redirect[1].strip()
+    redirect_removed_shell_input = split_by_redirect[0].strip()
+
+    # If file to redirect always create empty file
+    # Create file if does not exist and the write
+    folder_or_file = Path(file_to_redirect)
+    folder_or_file.parent.mkdir(parents=True, exist_ok=True)
+    return (
+        file_to_redirect,
+        folder_or_file,
+        redirect_removed_shell_input,
+        to_write_error,
+        to_concat,
+    )

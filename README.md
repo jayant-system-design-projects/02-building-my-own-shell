@@ -15,6 +15,9 @@ Right now, this shell can:
 - run built-in commands like `echo`, `pwd`, `cd`, `type`, and `exit`
 - find and run external commands available in `PATH`
 - parse normal arguments, single quotes, double quotes, escaped characters, and mixed quoted/unquoted values
+- redirect standard output with `>` and `1>`
+- redirect standard error with `2>`
+- append redirected output with `>>`, `1>>`, and `2>>`
 
 It is still a learning project, but the core flow is real: read input, parse it, decide what command it is, and execute it.
 
@@ -35,6 +38,15 @@ $ pwd
 
 $ type pwd
 pwd is a shell builtin
+
+$ echo hello > output.txt
+$ cat output.txt
+hello
+
+$ cat missing-file > output.txt
+cat: missing-file: No such file or directory
+$ cat output.txt
+
 ```
 
 ## How It Works
@@ -68,7 +80,19 @@ Command routing is handled in `app/handlers/command_handler.py`.
 
 After parsing, the handler decides whether the command is a shell built-in or an external command. Built-ins are handled inside the project, while external commands are passed to the system.
 
-### 4. Built-ins and External Commands
+### 4. Output Redirection
+
+Redirection parsing lives in `app/utils/command_utils.py`, and file writing lives in `app/utils/common_utils.py`.
+
+The shell can redirect command output to files:
+
+- `>` and `1>` write standard output to a file
+- `2>` writes standard error to a file
+- `>>`, `1>>`, and `2>>` append instead of overwriting
+
+Only the selected stream is written to the file. For example, when `stdout` is redirected, error output still appears in the terminal. Commands that do not produce output, like successful `cd`, return no printable result.
+
+### 5. Built-ins and External Commands
 
 The command logic lives in `app/services/command_service.py`.
 
@@ -78,6 +102,7 @@ The command logic lives in `app/services/command_service.py`.
 - `type` checks whether a command is built-in or available in `PATH`
 - `exit` stops the shell loop
 - external commands are found with `shutil.which()` and executed with `subprocess.run()`
+- command execution returns standard output and standard error separately so redirection can write only the requested stream
 
 ## Project Structure
 
@@ -89,6 +114,7 @@ app/
   services/
     command_service.py          # Built-ins and external command execution
   utils/
+    common_utils.py             # Shared file write/append helpers
     command_utils.py            # Parsing and PATH lookup helpers
     enums.py                    # Built-in command names
 pyproject.toml                  # Project metadata
@@ -112,6 +138,10 @@ pwd
 cd ..
 type pwd
 type python
+echo hello > output.txt
+echo hello 1> output.txt
+cat missing-file 2> error.txt
+echo again >> output.txt
 ```
 
 ## What I Learned
