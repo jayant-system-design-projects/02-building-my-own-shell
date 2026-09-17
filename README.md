@@ -41,13 +41,17 @@ and turn it into:
 
 This was important because raw shell input is just text. Before anything can run, it must be separated properly.
 
-I also handled single quotes, because this matters in real shells:
+I also handled quoting rules, because this matters in real shells:
 
 ```bash
 echo 'hello world'
+echo "hello world"
+echo hello\ world
 ```
 
-should stay as one argument, not two.
+These cases should stay as a single argument when needed, while still allowing escaped spaces and concatenated quoted/unquoted segments.
+
+This stage also covers backslash escaping outside quotes and inside double quotes, so patterns like `"hello"`, `\ `, and quoted strings are parsed more like a real shell.
 
 ### 3. Command dispatch
 
@@ -87,7 +91,10 @@ Right now it supports:
 - `type`
 - `exit`
 - external commands from `PATH`
-- basic single-quote parsing
+- single-quote and double-quote parsing
+- backslash escaping outside quotes and inside double quotes
+- whitespace preservation in quoted arguments
+- quoted and unquoted string concatenation
 
 ## Run it 🚀
 
