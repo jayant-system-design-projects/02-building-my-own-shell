@@ -1,6 +1,6 @@
 # Building My Own Shell 🐚
 
-This README is written by AI, but the code is mine. And yes, I am still building this shell one command at a time. 😄
+This README got a little AI polish, but the code is mine. And yes, I am still building this shell one command at a time. 😄
 
 This project is based on the [Build Your Own Shell](https://codecrafters.io) challenge from CodeCrafters, but I am following the structure and logic from my own code as I keep building it.
 
@@ -8,7 +8,7 @@ The goal is simple: make a shell that can take input, split it, decide what comm
 
 This is still a small shell, but it is a real one in progress. Shell we go? 🐚
 
-## How I built it
+## How I Built It
 
 ### 1. Prompt loop
 
@@ -49,13 +49,24 @@ echo 'hello world'
 
 should stay as one argument, not two.
 
-In this stage, I also added support for double-quoted strings, escaped spaces, and mixed quoted/unquoted parsing so the shell behaves more closely to a real command-line parser.
+In this stage, I also added support for double-quoted strings, escaped characters, quoted command names, and mixed quoted/unquoted parsing so the shell behaves more closely to a real command-line parser.
+
+Examples that the parser can handle now:
+
+```bash
+echo "hello world"
+echo hello\ world
+echo "hello""world"
+"my command" arg1
+```
+
+This was the part where I learned that splitting shell input is easy only until quotes enter the chat.
 
 ### 3. Command dispatch
 
 After that, I built the command routing in `app/handlers/command_handler.py`.
 
-This file decides what to do with the command after parsing. If the command is `echo`, `pwd`, `cd`, or `type`, it runs the appropriate logic. Otherwise, it tries to run it as an external command.
+This file decides what to do with the command after parsing. If the command is `echo`, `pwd`, `cd`, `type`, or `exit`, it runs the appropriate logic. Otherwise, it tries to run it as an external command.
 
 This is where the shell starts acting like a shell and not just a script.
 
@@ -79,7 +90,7 @@ I used `shutil.which()` and `subprocess.run()` so commands like `ls` or `git` ca
 
 That was the moment the shell started becoming useful.
 
-## Current status ✅
+## Current Status ✅
 
 Right now it supports:
 
@@ -89,9 +100,21 @@ Right now it supports:
 - `type`
 - `exit`
 - external commands from `PATH`
-- basic single-quote parsing
+- single-quote parsing
+- double-quote parsing
+- escaped characters outside quotes
+- quoted and unquoted argument joining
+- quoted command names
 
-## Run it 🚀
+Still not added yet:
+
+- pipes
+- redirects
+- environment variable expansion
+- command history
+- automated tests
+
+## Run It 🚀
 
 ```bash
 python -m app.main
@@ -101,6 +124,8 @@ Example commands:
 
 ```bash
 echo hello
+echo "hello world"
+echo hello\ world
 pwd
 cd ..
 type pwd
