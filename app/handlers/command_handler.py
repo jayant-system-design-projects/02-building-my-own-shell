@@ -24,6 +24,8 @@ def _execute_command(shell_input: str) -> str | None:
     str:
         The shell command output result if executed else not found error.
     """
+    if not shell_input:
+        return f"Invalid nothing passed."
     core_command, arguments = __split_command_and_args(shell_input)
 
     # 1. Matches the command if exist

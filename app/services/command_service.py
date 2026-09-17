@@ -118,7 +118,7 @@ def __execute_custom_command(core_command: str, arguments: list[str]) -> str | N
     executable_path = __find_executable_command(core_command)
 
     if executable_path:
-        full_command = [core_command] + arguments
+        full_command = [core_command, *arguments]
         result = subprocess.run(
             full_command,
             executable=executable_path,
