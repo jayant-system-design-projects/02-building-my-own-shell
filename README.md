@@ -1,8 +1,8 @@
 # Building My Own Shell 🐚
 
-This README got a little AI polish, but the code is mine. And yes, I am still building this shell one command at a time. 😄
+This README got a little AI polish, but the code is mine. AI helped with the words, I handled the shell work. Fair deal. 😄
 
-This project is based on the [Build Your Own Shell](https://codecrafters.io) challenge from CodeCrafters, but I am following the structure and logic from my own code as I keep building it.
+This project is based on the [Build Your Own Shell](https://codecrafters.io) challenge from CodeCrafters. I am following the challenge, but the structure and logic here come from my own implementation as I keep building it.
 
 The goal is simple: make a shell that can take input, split it, decide what command it is, and run it properly.
 
@@ -49,18 +49,9 @@ echo 'hello world'
 
 should stay as one argument, not two.
 
-In this stage, I also added support for double-quoted strings, escaped characters, quoted command names, and mixed quoted/unquoted parsing so the shell behaves more closely to a real command-line parser.
+In this stage, I also added support for double-quoted strings, escaped characters, quoted command names, and mixed quoted/unquoted parsing.
 
-Examples that the parser can handle now:
-
-```bash
-echo "hello world"
-echo hello\ world
-echo "hello""world"
-"my command" arg1
-```
-
-This was the part where I learned that splitting shell input is easy only until quotes enter the chat.
+This was the part where I learned that splitting shell input looks simple only until quotes enter the chat.
 
 ### 3. Command dispatch
 
@@ -94,25 +85,10 @@ That was the moment the shell started becoming useful.
 
 Right now it supports:
 
-- `echo`
-- `pwd`
-- `cd`
-- `type`
-- `exit`
+- a prompt loop that keeps running until `exit`
+- built-ins like `echo`, `pwd`, `cd`, `type`, and `exit`
 - external commands from `PATH`
-- single-quote parsing
-- double-quote parsing
-- escaped characters outside quotes
-- quoted and unquoted argument joining
-- quoted command names
-
-Still not added yet:
-
-- pipes
-- redirects
-- environment variable expansion
-- command history
-- automated tests
+- argument parsing for normal text, single quotes, double quotes, escaped characters, and mixed quoted/unquoted values
 
 ## Run It 🚀
 
