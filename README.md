@@ -12,6 +12,7 @@ Right now, this shell can:
 
 - show a terminal-style `$` prompt
 - keep reading commands until `exit`
+- complete built-in and executable command names with Tab
 - run built-in commands like `echo`, `pwd`, `cd`, `type`, and `exit`
 - find and run external commands available in `PATH`
 - parse normal arguments, single quotes, double quotes, escaped characters, and mixed quoted/unquoted values
@@ -39,6 +40,10 @@ $ pwd
 $ type pwd
 pwd is a shell builtin
 
+$ py<Tab>
+python
+python3
+
 $ echo hello > output.txt
 $ cat output.txt
 hello
@@ -51,11 +56,13 @@ $ cat output.txt
 
 ## How It Works
 
-### 1. Prompt Loop
+### 1. Prompt Loop and Completion
 
 The shell starts in `app/main.py`.
 
-It prints the `$` prompt, reads user input, sends the input for execution, prints the result, and keeps looping until the user runs `exit`.
+It uses `prompt_toolkit` to show the `$` prompt, read user input, and provide command completion. After the input is read, it sends the command for execution, prints the result, and keeps looping until the user runs `exit`.
+
+Completion logic lives in `app/handlers/completion_handler.py`. It suggests shell built-ins and executable commands found in the system `PATH`.
 
 ### 2. Command Parsing
 
@@ -103,13 +110,15 @@ The command logic lives in `app/services/command_service.py`.
 - `exit` stops the shell loop
 - external commands are found with `shutil.which()` and executed with `subprocess.run()`
 - command execution returns standard output and standard error separately so redirection can write only the requested stream
+- command completion finds built-ins and executable files from `PATH`
 
 ## Project Structure
 
 ```text
 app/
-  main.py                       # Prompt loop
+  main.py                       # Prompt loop with prompt_toolkit
   handlers/
+    completion_handler.py       # Tab completion for built-ins and PATH commands
     command_handler.py          # Command dispatch
   services/
     command_service.py          # Built-ins and external command execution
@@ -122,7 +131,15 @@ pyproject.toml                  # Project metadata
 
 ## Run Locally
 
-This project uses Python 3.14+ and has no external package dependencies right now.
+This project uses Python 3.14+.
+
+Install dependencies:
+
+```bash
+uv sync
+```
+
+Run the shell:
 
 ```bash
 python -m app.main
@@ -134,6 +151,7 @@ Example commands to try:
 echo hello
 echo "hello world"
 echo hello\ world
+py<Tab>
 pwd
 cd ..
 type pwd
@@ -146,6 +164,6 @@ echo again >> output.txt
 
 ## What I Learned
 
-This project helped me understand that a shell is not only about running commands. Even a small shell needs a clean flow for reading input, parsing arguments, routing built-ins, checking `PATH`, changing directories, and returning output.
+This project helped me understand that a shell is not only about running commands. Even a small shell needs a clean flow for reading input, parsing arguments, routing built-ins, checking `PATH`, changing directories, returning output, redirecting streams, and making the input experience feel usable.
 
 It is a small project, but it made shell behavior feel much less mysterious. Shell we say, progress? 🐚

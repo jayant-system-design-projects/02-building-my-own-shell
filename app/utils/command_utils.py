@@ -1,6 +1,10 @@
+import os
+import random
 from typing import Tuple
 import shutil
 from pathlib import Path
+from app.utils.common_utils import _get_all_executable_commands_in_path
+from app.utils.enums import BuiltInCommands
 
 
 def __normalize_arguments(arguments: str) -> list[str]:
@@ -319,3 +323,34 @@ def __find_shell_redirect(shell_input: str) -> Tuple[str, Path | str, str, bool]
         to_write_error,
         to_concat,
     )
+
+
+# This is just created to use with linux setup.
+def __auto_command_completion(partial_command: str, state: int):
+    """
+    This will take a command and state will check them and auto complete if command in BuiltInCommand Enum.
+
+    Parameters
+    ----------
+    partial_command: str
+        The partial command user enters.
+    state: str
+        This the state that readline will keep track of on my shell.
+
+    Returns
+    --------
+    str:
+        The actual autocompleted command.
+    """
+    built_in_command_matches = [
+        cmd.value for cmd in BuiltInCommands if cmd.value.startswith(partial_command)
+    ]
+    executable_commands_at_path = _get_all_executable_commands_in_path(
+        True, partial_command
+    )
+
+    all_commands = [*built_in_command_matches, *executable_commands_at_path]
+
+    if state < len(all_commands):
+        return all_commands[state] + " "
+    return None

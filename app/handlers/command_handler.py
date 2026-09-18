@@ -60,7 +60,7 @@ def _execute_command(shell_input: str) -> str | None:
                 # If no concat
                 __write_or_append_in_file(folder_or_file, execution_error, "w")
             else:
-                # If no concat
+                # If concat
                 __write_or_append_in_file(folder_or_file, execution_error, "a")
             # In case of empty output no output considered
             return execution_result.rstrip("\n") if execution_result else None
