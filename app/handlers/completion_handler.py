@@ -1,8 +1,10 @@
 from typing import Iterable
 from prompt_toolkit.document import Document
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
-from app.utils.enums import BuiltInCommands
-from app.utils.common_utils import _get_all_executable_commands_in_path
+from app.utils.common_utils import (
+    _get_all_commands,
+    _find_files_in_given_dir,
+)
 
 
 # Advance version better completer.
@@ -32,14 +34,25 @@ class ShellCompleter(Completer):
         prompt_toolkit.completion.Completion
             Completion candidates to be displayed or inserted into the input.
         """
-        # This is for multiple suggestion in single line.
-        partial_command = document.get_word_before_cursor()
+        text_before_cursor = document.text_before_cursor
+        if text_before_cursor and text_before_cursor[-1].isspace():
+            partial = ""
+        else:
+            partial = (
+                text_before_cursor.split()[-1] if text_before_cursor.split() else ""
+            )
 
-        built_in_command = [cmd.value for cmd in BuiltInCommands]
-        executable_commands_at_path = _get_all_executable_commands_in_path()
+        is_first_word = len(text_before_cursor) == len(partial)
 
-        all_commands = [*built_in_command, *executable_commands_at_path]
+        if is_first_word:
+            candidates = [
+                f"{command} "
+                for command in _get_all_commands()
+                if command.startswith(partial)
+            ]
+            candidates.extend(_find_files_in_given_dir(partial))
+        else:
+            candidates = _find_files_in_given_dir(partial)
 
-        for command in all_commands:
-            if command.startswith(partial_command):
-                yield Completion(command, start_position=-len(partial_command))
+        for match in sorted(candidates):
+            yield Completion(match, start_position=-len(partial))

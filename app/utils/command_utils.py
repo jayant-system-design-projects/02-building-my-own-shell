@@ -1,10 +1,10 @@
-import os
-import random
 from typing import Tuple
 import shutil
 from pathlib import Path
-from app.utils.common_utils import _get_all_executable_commands_in_path
-from app.utils.enums import BuiltInCommands
+from app.utils.common_utils import (
+    _find_files_in_given_dir,
+    _get_all_commands,
+)
 
 
 def __normalize_arguments(arguments: str) -> list[str]:
@@ -103,7 +103,7 @@ def __normalize_arguments(arguments: str) -> list[str]:
             in_double_quote = not in_double_quote
             has_content = True  # Handles empty quotes like "" properly
             i += 1
-        elif char == "\\" and not in_single_quote:
+        elif i + 1 < n and char == "\\" and not in_single_quote:
             # This just ignore first backslash and consider forward special characters except when single quotes.
             i += 1
             current_arg += arguments[i]
@@ -326,31 +326,44 @@ def __find_shell_redirect(shell_input: str) -> Tuple[str, Path | str, str, bool]
 
 
 # This is just created to use with linux setup.
-def __auto_command_completion(partial_command: str, state: int):
+def __auto_shell_completion(partial: str, state: int):
     """
-    This will take a command and state will check them and auto complete if command in BuiltInCommand Enum.
+    This will take a partial input and state will check them and auto complete either command or even file and folder name.
 
     Parameters
     ----------
-    partial_command: str
-        The partial command user enters.
+    partial: str
+        The partial input user enters.
     state: str
         This the state that readline will keep track of on my shell.
 
     Returns
     --------
     str:
-        The actual autocompleted command.
+        The actual autocompleted suggestion.
     """
-    built_in_command_matches = [
-        cmd.value for cmd in BuiltInCommands if cmd.value.startswith(partial_command)
-    ]
-    executable_commands_at_path = _get_all_executable_commands_in_path(
-        True, partial_command
-    )
+    import readline
 
-    all_commands = [*built_in_command_matches, *executable_commands_at_path]
+    line_buffer = readline.get_line_buffer()
+    end_index = readline.get_endidx()
+    token_start = line_buffer.rfind(" ", 0, end_index) + 1
+    partial = line_buffer[token_start:end_index]
 
-    if state < len(all_commands):
-        return all_commands[state] + " "
+    is_first_word = token_start == 0
+
+    if is_first_word:
+        matching = [
+            f"{command} "
+            for command in _get_all_commands()
+            if command.startswith(partial)
+        ]
+        matching.extend(_find_files_in_given_dir(partial))
+    else:
+        matching = _find_files_in_given_dir(partial)
+
+    matching.sort()
+
+    if state < len(matching):
+        candidate = matching[state]
+        return candidate
     return None
