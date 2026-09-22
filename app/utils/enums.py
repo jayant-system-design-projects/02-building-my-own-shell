@@ -10,6 +10,9 @@ class BuiltInCommands(Enum):
     PWD = "pwd"
     CD = "cd"
 
+    # Complete command to register external commands.
+    COMPLETE = "complete"
+
     # Other operations
     TYPE = "type"
     EXIT = "exit"

@@ -3,6 +3,7 @@ from app.services.command_service import (
     __type_command,
     __pwd_command,
     __cd_command,
+    __complete_command,
     __execute_custom_command,
 )
 from app.utils.command_utils import __find_shell_redirect, __split_command_and_args
@@ -43,6 +44,8 @@ def _execute_command(shell_input: str) -> str | None:
             execution_result, execution_error = __pwd_command()
         case BuiltInCommands.CD.value:
             execution_result, execution_error = __cd_command(arguments)
+        case BuiltInCommands.COMPLETE.value:
+            execution_result, execution_error = __complete_command(arguments)
         case BuiltInCommands.TYPE.value:
             execution_result, execution_error = __type_command(arguments)
         case BuiltInCommands.EXIT.value:

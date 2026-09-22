@@ -1,10 +1,6 @@
 from typing import Tuple
 import shutil
 from pathlib import Path
-from app.utils.common_utils import (
-    _find_files_in_given_dir,
-    _get_all_commands,
-)
 
 
 def __normalize_arguments(arguments: str) -> list[str]:
@@ -112,7 +108,9 @@ def __normalize_arguments(arguments: str) -> list[str]:
         elif (not in_single_quote and not in_double_quote) and char.isspace():
             # Space outside quotes acts as a delimiter to finish the current argument
             if has_content or current_arg:
-                normalized_list.append(current_arg)
+                normalized_list.append(
+                    current_arg.strip()
+                )  # Removed unwanted trailing spaces
                 current_arg = ""
                 has_content = False
             i += 1
@@ -122,7 +120,7 @@ def __normalize_arguments(arguments: str) -> list[str]:
             i += 1
     # Catch the trailing argument leftover in the buffer
     if has_content or current_arg:
-        normalized_list.append(current_arg)
+        normalized_list.append(current_arg.strip())
 
     return normalized_list
 
@@ -225,7 +223,7 @@ def __split_command_and_args(shell_input: str) -> Tuple[str, str | None]:
     return core_command, arguments
 
 
-def __find_executable_command(command: str) -> str | None:
+def __is_executable_command(command: str) -> str | None:
     """
     This check if the command is executable and provide the tuple
     containing the executable path of command.
@@ -323,47 +321,3 @@ def __find_shell_redirect(shell_input: str) -> Tuple[str, Path | str, str, bool]
         to_write_error,
         to_concat,
     )
-
-
-# This is just created to use with linux setup.
-def __auto_shell_completion(partial: str, state: int):
-    """
-    This will take a partial input and state will check them and auto complete either command or even file and folder name.
-
-    Parameters
-    ----------
-    partial: str
-        The partial input user enters.
-    state: str
-        This the state that readline will keep track of on my shell.
-
-    Returns
-    --------
-    str:
-        The actual autocompleted suggestion.
-    """
-    import readline
-
-    line_buffer = readline.get_line_buffer()
-    end_index = readline.get_endidx()
-    token_start = line_buffer.rfind(" ", 0, end_index) + 1
-    partial = line_buffer[token_start:end_index]
-
-    is_first_word = token_start == 0
-
-    if is_first_word:
-        matching = [
-            f"{command} "
-            for command in _get_all_commands()
-            if command.startswith(partial)
-        ]
-        matching.extend(_find_files_in_given_dir(partial))
-    else:
-        matching = _find_files_in_given_dir(partial)
-
-    matching.sort()
-
-    if state < len(matching):
-        candidate = matching[state]
-        return candidate
-    return None
