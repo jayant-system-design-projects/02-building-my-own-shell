@@ -15,7 +15,7 @@ def main():
 
     # 2. For linux only, swap the block above for readline based completion.
     # import readline
-    # from app.utils.command_utils import __auto_shell_completion
+    # from app.handlers.completion_handler import __auto_shell_completion
 
     # readline.set_completer(__auto_shell_completion)
     # readline.set_completer_delims(" \t\n")
@@ -24,6 +24,7 @@ def main():
     while True:
         try:
             shell_input = session.prompt("$ ")
+            # shell_input = input("$ ")
             evaluated = _execute_command(shell_input)
             if evaluated != "exit":
                 if evaluated != None:
